@@ -106,7 +106,7 @@ async def export_excel(key: str = ""):
                     if not val:
                         continue
                     # Tên
-                    if not name and ("tên" in kl or "name" in kl):
+                    if not name and ("tên" in kl or "name" in kl or "ten" in kl):
                         name = val
                     # Loại bằng / Hạng
                     if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl:
@@ -115,7 +115,7 @@ async def export_excel(key: str = ""):
                     if "ngày cấp" in kl or "cấp ngày" in kl or "issue" in kl or "ngaycap" in kl:
                         ngay_cap = val
                     # Thời hạn / Có giá trị đến
-                    if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl:
+                    if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "han" in kl:
                         thoi_han = val
             elif isinstance(verified_data, list):
                 for item in verified_data:
@@ -125,13 +125,13 @@ async def export_excel(key: str = ""):
                             val = str(v).strip() if v else ""
                             if not val:
                                 continue
-                            if not name and ("tên" in kl or "name" in kl):
+                            if not name and ("tên" in kl or "name" in kl or "ten" in kl):
                                 name = val
                             if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl:
                                 loai_bang = val
                             if "ngày cấp" in kl or "cấp ngày" in kl or "issue" in kl or "ngaycap" in kl:
                                 ngay_cap = val
-                            if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl:
+                            if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "han" in kl:
                                 thoi_han = val
         
         ws.append([name, gplx, loai_bang, ngay_cap, thoi_han, trang_thai])

@@ -68,9 +68,9 @@ def save_verification(gplx: str, dob: str, status: str, data: dict = None):
                     kl = k.lower()
                     val = str(v).strip() if v else ""
                     if not val: continue
-                    if not name and ("tên" in kl or "name" in kl): name = val
+                    if not name and ("tên" in kl or "name" in kl or "ten" in kl): name = val
                     if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl: loai_bang = val
-                    if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl: thoi_han = val
+                    if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "han" in kl: thoi_han = val
             elif isinstance(data, list):
                 for item in data:
                     if isinstance(item, dict):
@@ -78,9 +78,9 @@ def save_verification(gplx: str, dob: str, status: str, data: dict = None):
                             kl = k.lower()
                             val = str(v).strip() if v else ""
                             if not val: continue
-                            if not name and ("tên" in kl or "name" in kl): name = val
+                            if not name and ("tên" in kl or "name" in kl or "ten" in kl): name = val
                             if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl: loai_bang = val
-                            if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl: thoi_han = val
+                            if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "han" in kl: thoi_han = val
 
         payload = {
             "gplx": gplx,
