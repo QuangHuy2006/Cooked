@@ -89,50 +89,12 @@ async def export_excel(key: str = ""):
     
     for row in history:
         name = row.get("name", "")
-        gplx = row["gplx"]
-        loai_bang = ""
-        ngay_cap = ""
-        thoi_han = ""
+        gplx = row.get("gplx", "")
+        loai_bang = row.get("loai_bang", "")
+        ngay_cap = row.get("ngay_cap", "")
+        thoi_han = row.get("thoi_han", "")
         status_map = {"success": "Thành công", "not_found": "Không tìm thấy", "error": "Lỗi"}
-        trang_thai = status_map.get(row["status"], row["status"])
-        
-        # Trích xuất thông tin từ data JSON
-        verified_data = db.get_verified_data(row["gplx"])
-        if verified_data:
-            if isinstance(verified_data, dict):
-                for k, v in verified_data.items():
-                    kl = k.lower()
-                    val = str(v).strip() if v else ""
-                    if not val:
-                        continue
-                    # Tên
-                    if not name and ("tên" in kl or "name" in kl or "ten" in kl):
-                        name = val
-                    # Loại bằng / Hạng
-                    if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl:
-                        loai_bang = val
-                    # Ngày cấp
-                    if "ngày cấp" in kl or "cấp ngày" in kl or "issue" in kl or "ngaycap" in kl:
-                        ngay_cap = val
-                    # Thời hạn / Có giá trị đến
-                    if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "han" in kl:
-                        thoi_han = val
-            elif isinstance(verified_data, list):
-                for item in verified_data:
-                    if isinstance(item, dict):
-                        for k, v in item.items():
-                            kl = k.lower()
-                            val = str(v).strip() if v else ""
-                            if not val:
-                                continue
-                            if not name and ("tên" in kl or "name" in kl or "ten" in kl):
-                                name = val
-                            if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl:
-                                loai_bang = val
-                            if "ngày cấp" in kl or "cấp ngày" in kl or "issue" in kl or "ngaycap" in kl:
-                                ngay_cap = val
-                            if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "han" in kl:
-                                thoi_han = val
+        trang_thai = status_map.get(row.get("status", ""), row.get("status", ""))
         
         ws.append([name, gplx, loai_bang, ngay_cap, thoi_han, trang_thai])
     
