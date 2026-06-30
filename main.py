@@ -286,7 +286,16 @@ async def verify_gplx_ws(websocket: WebSocket):
     await websocket.send_json({"type": "status", "message": "Đang khởi tạo trình duyệt ẩn..."})
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage", # Chống crash do thiếu bộ nhớ /dev/shm trên Docker
+                "--disable-gpu",
+                "--single-process" # Tối ưu RAM cho gói Free của Render
+            ]
+        )
         context = await browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             locale="vi-VN"
