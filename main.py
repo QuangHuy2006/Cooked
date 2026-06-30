@@ -71,7 +71,7 @@ async def get_index():
     return FileResponse(os.path.join(static_dir, "index.html"))
 
 # Mật khẩu quản trị (bạn có thể thay đổi tại đây)
-ADMIN_SECRET = "gplx2025"
+ADMIN_SECRET = os.environ.get("ADMIN_SECRET", "@@@@@@@@")
 
 @app.get("/api/export-excel")
 async def export_excel(key: str = ""):

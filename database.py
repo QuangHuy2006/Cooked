@@ -67,10 +67,10 @@ def save_verification(gplx: str, dob: str, status: str, data: dict = None):
                     kl = k.lower()
                     val = str(v).strip() if v else ""
                     if not val: continue
-                    if not name and ("tên" in kl or "name" in kl or "ten" in kl): name = val
-                    if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl: loai_bang = val
-                    if "ngày cấp" in kl or "cấp ngày" in kl or "issue" in kl or "ngaycap" in kl: ngay_cap = val
-                    if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "han" in kl: thoi_han = val
+                    if not name and ("tên" in kl or "name" in kl or kl == "ho_va_ten"): name = val
+                    if not loai_bang and ("hạng" in kl or "loại" in kl or "class" in kl or kl == "hang_gplx" or kl == "hang"): loai_bang = val
+                    if not ngay_cap and ("ngày cấp" in kl or "cấp ngày" in kl or "issue" in kl or "ngaycap" in kl or kl == "ngay_cap"): ngay_cap = val
+                    if not thoi_han and ("thời hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "hạn" in kl or kl == "ngay_het_han"): thoi_han = val
             elif isinstance(data, list):
                 for item in data:
                     if isinstance(item, dict):
@@ -78,10 +78,10 @@ def save_verification(gplx: str, dob: str, status: str, data: dict = None):
                             kl = k.lower()
                             val = str(v).strip() if v else ""
                             if not val: continue
-                            if not name and ("tên" in kl or "name" in kl or "ten" in kl): name = val
-                            if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl: loai_bang = val
-                            if "ngày cấp" in kl or "cấp ngày" in kl or "issue" in kl or "ngaycap" in kl: ngay_cap = val
-                            if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "han" in kl: thoi_han = val
+                            if not name and ("tên" in kl or "name" in kl or kl == "ho_va_ten"): name = val
+                            if not loai_bang and ("hạng" in kl or "loại" in kl or "class" in kl or kl == "hang_gplx" or kl == "hang"): loai_bang = val
+                            if not ngay_cap and ("ngày cấp" in kl or "cấp ngày" in kl or "issue" in kl or "ngaycap" in kl or kl == "ngay_cap"): ngay_cap = val
+                            if not thoi_han and ("thời hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl or "hạn" in kl or kl == "ngay_het_han"): thoi_han = val
 
         payload = {
             "gplx": gplx,
