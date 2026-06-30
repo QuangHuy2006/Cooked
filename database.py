@@ -1,103 +1,113 @@
-import sqlite3
-from datetime import datetime
+import os
 import json
+from datetime import datetime
+from supabase import create_client, Client
 
-DB_NAME = "gplx_history.db"
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+
+supabase: Client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    except Exception as e:
+        print("Lỗi kết nối Supabase:", e)
 
 def init_db():
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS verified_users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            gplx TEXT UNIQUE NOT NULL,
-            dob TEXT NOT NULL,
-            status TEXT NOT NULL,
-            data TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    conn.commit()
-    conn.close()
+    # Supabase không cần tạo bảng từ code Python, bảng được tạo trực tiếp trên giao diện Supabase.
+    pass
 
 def is_gplx_verified(gplx: str) -> bool:
     """Kiểm tra xem GPLX đã được xác thực thành công chưa."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute('SELECT 1 FROM verified_users WHERE gplx = ? AND status = "success"', (gplx,))
-    result = cursor.fetchone()
-    conn.close()
-    return result is not None
+    if not supabase: return False
+    try:
+        response = supabase.table('verified_users').select('id').eq('gplx', gplx).eq('status', 'success').execute()
+        return len(response.data) > 0
+    except Exception:
+        return False
 
 def get_verified_data(gplx: str):
     """Lấy dữ liệu GPLX đã xác thực."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute('SELECT data FROM verified_users WHERE gplx = ? AND status = "success"', (gplx,))
-    result = cursor.fetchone()
-    conn.close()
-    if result and result[0]:
-        return json.loads(result[0])
+    if not supabase: return None
+    try:
+        response = supabase.table('verified_users').select('data').eq('gplx', gplx).eq('status', 'success').execute()
+        if response.data and len(response.data) > 0:
+            data = response.data[0].get('data')
+            if isinstance(data, str):
+                return json.loads(data)
+            return data
+    except Exception:
+        pass
     return None
 
 def get_stored_dob(gplx: str):
     """Lấy ngày sinh đã lưu của GPLX."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute('SELECT dob FROM verified_users WHERE gplx = ? AND status = "success"', (gplx,))
-    result = cursor.fetchone()
-    conn.close()
-    return result[0] if result else None
+    if not supabase: return None
+    try:
+        response = supabase.table('verified_users').select('dob').eq('gplx', gplx).eq('status', 'success').execute()
+        if response.data and len(response.data) > 0:
+            return response.data[0].get('dob')
+    except Exception:
+        pass
+    return None
 
 def save_verification(gplx: str, dob: str, status: str, data: dict = None):
-    """Lưu kết quả xác thực."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    data_str = json.dumps(data, ensure_ascii=False) if data else None
-    
-    # Dùng REPLACE để ghi đè nếu đã tồn tại nhưng có thể trước đó là lỗi, nay thành công
-    cursor.execute('''
-        INSERT OR REPLACE INTO verified_users (id, gplx, dob, status, data, created_at)
-        VALUES (
-            (SELECT id FROM verified_users WHERE gplx = ?),
-            ?, ?, ?, ?, ?
-        )
-    ''', (gplx, gplx, dob, status, data_str, datetime.now()))
-    
-    conn.commit()
-    conn.close()
+    """Lưu kết quả xác thực (thêm mới hoặc cập nhật)."""
+    if not supabase: return
+    try:
+        data_str = json.dumps(data, ensure_ascii=False) if data else None
+        
+        payload = {
+            "gplx": gplx,
+            "dob": dob,
+            "status": status,
+            "data": data_str
+        }
+        
+        # Kiểm tra xem gplx đã tồn tại chưa
+        res = supabase.table('verified_users').select('id').eq('gplx', gplx).execute()
+        
+        if res.data and len(res.data) > 0:
+            # Cập nhật nếu đã có
+            supabase.table('verified_users').update(payload).eq('gplx', gplx).execute()
+        else:
+            # Thêm mới
+            supabase.table('verified_users').insert(payload).execute()
+    except Exception as e:
+        print("Lỗi lưu dữ liệu Supabase:", e)
 
 def get_all_history():
-    """Lấy toàn bộ lịch sử (cho trang quản trị nếu cần)."""
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute('SELECT gplx, dob, status, created_at, data FROM verified_users ORDER BY created_at DESC')
-    rows = cursor.fetchall()
-    conn.close()
-    
-    result = []
-    for r in rows:
-        name = ""
-        if r[4]:
-            try:
-                data_dict = json.loads(r[4])
-                # Tìm trường có chữ "tên" để lấy tên
-                if isinstance(data_dict, dict):
-                    for k, v in data_dict.items():
-                        if "tên" in k.lower() or "name" in k.lower():
-                            name = str(v)
-                            break
-            except Exception:
-                pass
-                
-        result.append({
-            "gplx": r[0], 
-            "dob": r[1], 
-            "status": r[2], 
-            "created_at": r[3],
-            "name": name
-        })
-    return result
+    """Lấy toàn bộ lịch sử (cho trang quản trị)."""
+    if not supabase: return []
+    try:
+        response = supabase.table('verified_users').select('gplx, dob, status, created_at, data').order('created_at', desc=True).execute()
+        rows = response.data
+        
+        result = []
+        for r in rows:
+            name = ""
+            data_val = r.get('data')
+            if data_val:
+                try:
+                    data_dict = json.loads(data_val) if isinstance(data_val, str) else data_val
+                    if isinstance(data_dict, dict):
+                        for k, v in data_dict.items():
+                            if "tên" in k.lower() or "name" in k.lower():
+                                name = str(v)
+                                break
+                except Exception:
+                    pass
+                    
+            result.append({
+                "gplx": r.get('gplx'), 
+                "dob": r.get('dob'), 
+                "status": r.get('status'), 
+                "created_at": r.get('created_at'),
+                "name": name
+            })
+        return result
+    except Exception as e:
+        print("Lỗi lấy lịch sử Supabase:", e)
+        return []
 
-# Khởi tạo DB khi load module
-init_db()
+# Bỏ init_db vì Supabase tạo bảng trên web
