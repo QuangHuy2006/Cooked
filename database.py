@@ -57,11 +57,39 @@ def save_verification(gplx: str, dob: str, status: str, data: dict = None):
     try:
         data_str = json.dumps(data, ensure_ascii=False) if data else None
         
+        # Trích xuất các trường cụ thể để lưu thẳng vào các cột riêng
+        name = ""
+        loai_bang = ""
+        thoi_han = ""
+        
+        if data:
+            if isinstance(data, dict):
+                for k, v in data.items():
+                    kl = k.lower()
+                    val = str(v).strip() if v else ""
+                    if not val: continue
+                    if not name and ("tên" in kl or "name" in kl): name = val
+                    if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl: loai_bang = val
+                    if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl: thoi_han = val
+            elif isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict):
+                        for k, v in item.items():
+                            kl = k.lower()
+                            val = str(v).strip() if v else ""
+                            if not val: continue
+                            if not name and ("tên" in kl or "name" in kl): name = val
+                            if "hạng" in kl or "loại" in kl or "class" in kl or "hang" in kl: loai_bang = val
+                            if "thời hạn" in kl or "hạn" in kl or "giá trị" in kl or "expir" in kl or "valid" in kl: thoi_han = val
+
         payload = {
             "gplx": gplx,
             "dob": dob,
             "status": status,
-            "data": data_str
+            "data": data_str,
+            "name": name,
+            "loai_bang": loai_bang,
+            "thoi_han": thoi_han
         }
         
         # Kiểm tra xem gplx đã tồn tại chưa
